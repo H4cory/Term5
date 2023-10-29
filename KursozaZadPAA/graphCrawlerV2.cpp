@@ -74,12 +74,21 @@ public:
 void getUserInput(cNodes node[], int &numberOfNodes, int &numberOfLinks, int &firstNode)
 {
     
-    bool gate = true;
+    bool gate = true, accept = true;
 
+    while(accept){
     // gets number of nodes and theyr links
     cout << "\nNumber of Nodes & Links: ";
     cin >> numberOfNodes;
     cin >> numberOfLinks;
+
+    if(1<numberOfNodes&&numberOfNodes<=3000&&0<=numberOfLinks&&numberOfLinks<=4000000){
+        accept = false;
+    }
+    else{
+        cout<<"Out of range Input!\n";
+    }
+}
 
     // gets the links
     for (int i = 0, temp1 = 0, temp2 = 0; i < numberOfLinks; i++)
