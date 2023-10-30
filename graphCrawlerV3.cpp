@@ -32,7 +32,7 @@
 
    -numberOfNodes      - int    - Zapazwa broqt na wywedenite wyzlite
    -numberOfLinks      - int    - Zapazwa broqt na wywedenite rebrat
-   -numberOfAddedLinks - int    - Zapazwa broqt na dobawenite rebra
+   -numberOfNeededLinks - int    - Zapazwa broqt na dobawenite rebra
    -firstNode          - int    - Zapazwa indexa na pyrwiqt wyzel
    -selectedNode       - int    - Zapazwa indexa na izbraniqt wyzel
    -selectedLink       - int    - Zapazwa indexa na izbrano rebro
@@ -154,28 +154,41 @@ void getUserInput(cNodes *&node, int &numberOfNodes, int &numberOfLinks, int &fi
     // creates node objects
     node = new cNodes[numberOfNodes];
 
-    // gets the links
-    for (int i = 0, temp1 = 0, temp2 = 0; i < numberOfLinks; i++)
+    // exeption if there are 0 links
+    if (numberOfLinks == 0)
     {
-        cin >> temp1;
-        cin >> temp2;
-        // saves the value of the links in 2 nodes
-        // becouse the links are 2-way
-        node[temp1].getLink(temp2);
-        node[temp2].getLink(temp1);
-
-        // executes once and gets the index of the first node
-        if (gate)
+        for (int i = 0; i < numberOfNodes; i++)
         {
-            firstNode = temp1;
-            gate = false;
+            node[i].getLink(i);
+        }
+    }
+
+    // normal input
+    else
+    {
+        // gets the links
+        for (int i = 0, temp1 = 0, temp2 = 0; i < numberOfLinks; i++)
+        {
+            cin >> temp1;
+            cin >> temp2;
+            // saves the value of the links in 2 nodes
+            // becouse the links are 2-way
+            node[temp1].getLink(temp2);
+            node[temp2].getLink(temp1);
+
+            // executes once and gets the index of the first node
+            if (gate)
+            {
+                firstNode = temp1;
+                gate = false;
+            }
         }
     }
 }
 
 // crawles a Node meaning it takes a node, checks all the links
 // and if the link leades to a "not available" node
-// marks the node as available and puts it in a waiting queue
+// marks the node as available and puts it in a waiting stack
 // to be crawled
 void crawl(cNodes node[], int selectedNode, stack<int> &waiting)
 {
@@ -192,7 +205,7 @@ void crawl(cNodes node[], int selectedNode, stack<int> &waiting)
         }
 
         // if its not available, marks it as available
-        // and puts it in a waiting queue
+        // and puts it in a waiting stack
         else
         {
             node[selectedLink].availableT();
@@ -202,34 +215,36 @@ void crawl(cNodes node[], int selectedNode, stack<int> &waiting)
 }
 
 // checks if all nodes are connectet to the graph and
-// if not, creates a link between the first node
-// and the first not connected node
-void checkNodes(cNodes node[], int numberOfNodes, int firstNode, bool &gate)
+// if there are discconected nodes the sellected node
+// becomes the disconnected node and the cycle breaks
+bool checkNodes(cNodes node[], int numberOfNodes, int &selectedNode)
 {
+    bool gate = true;
     // start of check
     for (int i = 0; i < numberOfNodes; i++)
     {
         // checks if a node is disconnected
         if (!node[i].returnAvailable())
         {
+
             // if a node is disconnected
-            // creates a new link and breaks
-            // the cycle
-            node[firstNode].getLink(i);
-            node[i].getLink(firstNode);
+            // the selected node becomes
+            // the disconnected node
+            selectedNode = i;
             gate = false;
             break;
         }
     }
+
+    return gate;
 }
 
 int main()
 {
     cNodes *node;
     int selectedNode = 0, numberOfNodes = 0, numberOfLinks = 0;
-    int firstNode = 0, numberOfAddedLinks = 0;
+    int firstNode = 0, numberOfNeededLinks = 0;
     stack<int> waiting;
-    bool gate = true;
 
     // gets user input
     getUserInput(node, numberOfNodes, numberOfLinks, firstNode);
@@ -246,7 +261,7 @@ int main()
     while (true)
     {
         // pushes the first node into the waiting list so its not empty
-        waiting.push(firstNode);
+        waiting.push(selectedNode);
 
         // crawls thru nodes
         do
@@ -258,28 +273,25 @@ int main()
 
         } while (!waiting.empty());
 
-        // cheks if all nods are connected
-        gate = true;
-        checkNodes(node, numberOfNodes, firstNode, gate);
-
+        // cheks if all nodes are connected
         // if all nodes are connected the cycle breaks
-        if (gate)
+        if (checkNodes(node, numberOfNodes, selectedNode))
         {
             break;
         }
 
         // if there are disconnected nodes the cycle
-        // continues and the number of added nodes
-        // increases
+        // continues, the selected node now is the
+        // first found disconnected node and
+        // the number of needed links is increased
         else
         {
-            selectedNode = firstNode;
-            numberOfAddedLinks++;
+            numberOfNeededLinks++;
         }
     }
 
     // returns to the user the number of added links
-    cout << numberOfAddedLinks;
+    cout << numberOfNeededLinks;
 
     // frees memory
     delete[] node;
@@ -287,3 +299,7 @@ int main()
     // end of code
     return 0;
 }
+
+/*
+pone 5 primera razlichni ot uslowieto
+*/
